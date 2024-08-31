@@ -68,3 +68,32 @@ vim.opt.ttyfast = true
 
 
 require("config.lazy")
+
+local config_dir = vim.fn.stdpath('config') .. '/lua/plugins/config'
+
+-- Function to load all Lua files from the specified directory
+local function load_configs_from_dir(dir)
+    local files = vim.fn.globpath(dir, '*.lua', false, true)
+    for _, file in ipairs(files) do
+        local module_name = file:match('([^/]+)%.lua$'):gsub('%.', '_')
+        local module_path = 'plugins.config.' .. module_name
+        require(module_path)
+    end
+
+    local dirs = vim.fn.globpath(dir, '*', true, true)
+    for _, subdir in ipairs(dirs) do
+        if vim.fn.isdirectory(subdir) == 1 then
+            local subdir_name = subdir:match('([^/]+)$')
+            local subdir_path = dir .. '/' .. subdir_name
+            local subdir_files = vim.fn.globpath(subdir_path, '*.lua', false, true)
+            for _, file in ipairs(subdir_files) do
+                local module_name = file:match(subdir_name .. '/([^/]+)%.lua$'):gsub('%.', '_')
+                local module_path = 'plugins.config.' .. subdir_name .. '.' .. module_name
+                require(module_path)
+            end
+        end
+    end
+end
+
+-- Load the plugin configurations
+load_configs_from_dir(config_dir)
